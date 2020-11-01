@@ -1,0 +1,30 @@
+int a = 10;
+long
+double
+short
+unsigned
+void
+volatile
+while
+float
+if (e=1230){
+}
+case
+else
+goto
+char
+#include[a]
+"xyz"
+#include<LE>
+#include"lib"
+#define m 3
+float a[25]
+char OK[1]
+char*i8
+int*i8
+long*i8
+float*i8
+\a
+\f
+int test_function(int a){}
+const
