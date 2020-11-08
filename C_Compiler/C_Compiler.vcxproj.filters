@@ -21,6 +21,9 @@
     <ClCompile Include="C_Compiler.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="c.tab.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="c.lex">

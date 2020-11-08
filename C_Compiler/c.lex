@@ -46,7 +46,6 @@ void count();
 "struct"		{ count(); return(STRUCT); }
 "union"			{ count(); return(UNION); }
 "typedef"		{ count(); return(TYPEDEF); }
-
 "do"			{ count(); return(DO); }
 "while"			{ count(); return(WHILE); }
 "for"			{ count(); return(FOR); }
@@ -81,10 +80,6 @@ void count();
 "#define "{L}+" "{D}+			{ count(); return(DEFINE); }
 ("char "{L}+"["{D}+"]"|"int "{L}+"["{D}+"]"|"long "{L}+"["{D}+"]"|"float "{L}+"["{D}+"]")			{ count(); return(ARRAY); }
 
-"char\*"{L}+{D}+				{ count(); return(POINTER); }
-"int\*"{L}+{D}+					{ count(); return(POINTER); }
-"long\*"{L}+{D}+				{ count(); return(POINTER); }
-"float\*"{L}+{D}+				{ count(); return(POINTER); }
 
 "\\n"|"\\t"|"\\a"|"\\b"|"\\f"|"\\v"	{ count(); return(SIMPLE_ESCAPE_SEQUENCE); }
 
@@ -135,6 +130,7 @@ void count();
 "^="		{ count(); return (ASSIGNMENT_BY_BITWISE_XOR);}
 "|="		{ count(); return (ASSIGNMENT_BY_BITWISE_OR);}
 ","			{ count(); return (COMMA);}
+"..."		{ count(); return (DOTS);}
 
 
 
