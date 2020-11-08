@@ -149,7 +149,7 @@ extern int yydebug;
     END_COMMENT = 350,             /* END_COMMENT  */
     DO = 351,                      /* DO  */
     ARRAY = 352,                   /* ARRAY  */
-    POINTER = 353                  /* POINTER  */
+    DOTS = 353                     /* DOTS  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
