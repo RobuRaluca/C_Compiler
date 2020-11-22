@@ -24,6 +24,9 @@
     <ClCompile Include="c.tab.c">
       <Filter>Resource Files</Filter>
     </ClCompile>
+    <ClCompile Include="ast.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="c.lex">
@@ -38,6 +41,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="c.tab.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ast.h">
       <Filter>Resource Files</Filter>
     </ClInclude>
   </ItemGroup>

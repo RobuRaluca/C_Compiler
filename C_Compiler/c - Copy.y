@@ -1,17 +1,9 @@
 %{
 #include <stdio.h>
-#include "ast.h"
 
-Node* astRoot = NULL;
 int yyerror(char * s);
 extern int yylex(void);
 %}
-%union{
-	
-	Node	*node;
-	char* strings;
-	int intVal;
-}
 %token END 
 %token INT 
 %token LONG 
@@ -25,12 +17,12 @@ extern int yylex(void);
 %token IF 
 %token ELSE 
 %token RETURN 
-%token <intVal> CONSTANT
+%token CONSTANT 
 %token STRING_LITERAL 
 %token ASSIGN 
 %token ADD 
 %token SUBSTRACT  
-%token <strings> IDENTIFIER
+%token IDENTIFIER  
 %token END_OF_INSTRUCTION  
 %token CHAR  
 %token SIGNED  
@@ -108,51 +100,34 @@ extern int yylex(void);
 %token DO  
 %token ARRAY  
 %token DOTS
-
-%type <node> program_unit
-%type <node> declaration
-%type <node> function-definition
-%type <node> type-specifier
-%type <node> parameter-list
-%type <node> parameter-declaration
-%type <node> declaration-specifier
-%type <node> expression
-%type <node> compound-statement
-%type <node> local_declaration_list
-%type <node> instructions_list
-%type <node> statement
-%type <node> selection-statement
-%type <node> jump-statement
-%type <node> iteration-statement
+%token STRING
 
 
 %start program_unit
 %%
 program_unit
-	: declaration	{ $$ = createProgramUnitNode($1); astRoot = $$;}
-	| program_unit declaration	{ $$ = $1; addLinkToList($$, $2);}
+	: declaration
+	| program_unit declaration	
 	;
 
 declaration
-	: declaration-specifier init-declarator-list END_OF_INSTRUCTION 
-	| declaration-specifier END_OF_INSTRUCTION {$$ = createDeclarationNode($1);}
-	| function-definition { $$ = createDeclarationNode($1);}
+	: declaration-specifier init-declarator-list END_OF_INSTRUCTION
+	| declaration-specifier END_OF_INSTRUCTION
+	| function-definition
 	| INCLUDE_LIBRARY
 	| INCLUDE_HEADER
 	| comment_sequence
-	| selection-statement { $$ = createDeclarationNode($1);}
-	| iteration-statement { $$ = createDeclarationNode($1);}
 	;
 
 comment_sequence
-	: LINE_COMMENT STRING_LITERAL
+	: LINE_COMMENT STRING
 	| LINE_COMMENT declaration-specifier
 	| LINE_COMMENT function-definition
 	| LINE_COMMENT INCLUDE_LIBRARY
 	| LINE_COMMENT INCLUDE_HEADER
 	| LINE_COMMENT
 	| START_COMMENT END_COMMENT
-	| START_COMMENT STRING_LITERAL END_COMMENT
+	| START_COMMENT STRING END_COMMENT
 	| START_COMMENT function-definition END_COMMENT
 	| START_COMMENT INCLUDE_LIBRARY END_COMMENT
 	| START_COMMENT INCLUDE_HEADER END_COMMENT
@@ -270,8 +245,7 @@ conditional-expression
 	;
 
 assignment-expression
-	: IDENTIFIER EQUAL_TO CONSTANT
-	| conditional-expression
+	: conditional-expression
 	| unary-expression assignment-operator assignment-expression
 	;
 
@@ -290,9 +264,7 @@ assignment-operator
 	;
 
 expression
-	: IDENTIFIER LESS_THAN CONSTANT {$$ = createExpressionStatement($1, $3);}
-	| IDENTIFIER INCREMENT {$$ = createExpressionStatement($1, NULL);}
-	| assignment-expression {$$ = createExpressionStatement(NULL, NULL);}
+	: assignment-expression
 	| expression COMMA assignment-expression
 	;
 
@@ -309,10 +281,8 @@ declaration-specifier
 	| type-qualifier
 	| function-specifier declaration-specifier
 	| function-specifier
-	| type-specifier IDENTIFIER ASSIGN CONSTANT { $$ = createVarDeclaration($1, $2, $4);}
-	| type-specifier IDENTIFIER { $$ = createVarDeclaration($1, $2, 0);}
-	| IDENTIFIER ASSIGN IDENTIFIER LEFT_ROUND_BRACKET RIGHT_ROUND_BRACKET 
-	| IDENTIFIER ASSIGN CONSTANT 
+	| type-specifier IDENTIFIER ASSIGN CONSTANT
+	| IDENTIFIER ASSIGN IDENTIFIER LEFT_ROUND_BRACKET RIGHT_ROUND_BRACKET
 	| IDENTIFIER ASSIGN IDENTIFIER LEFT_ROUND_BRACKET STRING_LITERAL COMMA STRING_LITERAL RIGHT_ROUND_BRACKET
 	| function-definition
 	| storage-class-specifier type-specifier IDENTIFIER
@@ -340,18 +310,18 @@ storage-class-specifier
 	;
 
 type-specifier
-	: VOID {$$ = createTypeSpecifier("VOID");}
-	| CHAR {$$ = createTypeSpecifier("CHAR");}
-	| SHORT {$$ = createTypeSpecifier("SHORT");}
-	| INT {$$ = createTypeSpecifier("INT");}
-	| LONG {$$ = createTypeSpecifier("LONG");}
-	| FLOAT {$$ = createTypeSpecifier("FLOAT");}
-	| DOUBLE {$$ = createTypeSpecifier("DOUBLE");}
-	| SIGNED {$$ = createTypeSpecifier("SIGNED");}
-	| UNSIGNED {$$ = createTypeSpecifier("UNSIGNED");}
-	| _BOOL {$$ = createTypeSpecifier("_BOOL");}
-	| _COMPLEX {$$ = createTypeSpecifier("_COMPLEX");}
-	| _IMAGINARY {$$ = createTypeSpecifier("_IMAGINARY");}
+	: VOID
+	| CHAR
+	| SHORT
+	| INT
+	| LONG
+	| FLOAT
+	| DOUBLE
+	| SIGNED
+	| UNSIGNED
+	| _BOOL
+	| _COMPLEX
+	| _IMAGINARY
 	| struct-or-union-specifier
 	| enum-specifier
 	| typedef-name
@@ -471,15 +441,14 @@ parameter-type-list
 	;
 
 parameter-list
-	: parameter-declaration { $$ = createListNode("ParametersList", $1);}
+	: parameter-declaration
 	| parameter-list COMMA parameter-declaration
 	;
 
 parameter-declaration
-        : type-specifier IDENTIFIER { $$ = createVarDeclaration($1, $2, 0);}
-	| declaration-specifier declarator
+	: declaration-specifier declarator
 	| declaration-specifier abstract-declarator
-	| declaration-specifier 
+	| declaration-specifier
 	;
 
 identifier-list
@@ -558,19 +527,18 @@ labeled-statement
 	;
 
 compound-statement
-	: LEFT_CURLY_BRACKET RIGHT_CURLY_BRACKET {$$ = createCompoundStatement(NULL, NULL);}
-	| LEFT_CURLY_BRACKET local_declaration_list RIGHT_CURLY_BRACKET  {$$ = createCompoundStatement($2, NULL);}
-	| LEFT_CURLY_BRACKET local_declaration_list instructions_list RIGHT_CURLY_BRACKET  {$$ = createCompoundStatement($2, $3);}
+	: LEFT_CURLY_BRACKET block-item-list RIGHT_CURLY_BRACKET
+	| LEFT_CURLY_BRACKET RIGHT_CURLY_BRACKET
 	;
 
-local_declaration_list
-	: declaration { $$ = createListNode("LocalDeclarations", $1); }
-	| local_declaration_list declaration {	$$ = $1; addLinkToList($$, $2);}
+block-item-list
+	: block-item
+	| block-item-list block-item
 	;
 
-instructions_list
-	: statement {$$ = createListNode("InstructionsList", $1);}
-	| instructions_list statement {	$$ = $1; addLinkToList($$, $2);}
+block-item
+	: declaration
+	| statement
 	;
 
 expression-statement
@@ -579,17 +547,16 @@ expression-statement
 	;
 
 selection-statement
-	: IF LEFT_ROUND_BRACKET expression RIGHT_ROUND_BRACKET statement { $$ = createIfStatement($3, $5, NULL);}
-	| IF LEFT_ROUND_BRACKET expression RIGHT_ROUND_BRACKET compound-statement { $$ = createIfStatement($3, $5, NULL);}
-	| IF LEFT_ROUND_BRACKET RIGHT_ROUND_BRACKET compound-statement { $$ = createIfStatement("", $4, NULL);}
-	| IF LEFT_ROUND_BRACKET expression RIGHT_ROUND_BRACKET statement ELSE statement { $$ = createIfStatement($3, $5, $7);}
-	| SWITCH LEFT_ROUND_BRACKET expression RIGHT_ROUND_BRACKET statement { $$ = createSwitchStatement($3, $5, NULL);}
-	| SWITCH LEFT_ROUND_BRACKET RIGHT_ROUND_BRACKET statement { $$ = createSwitchStatement("", $4, NULL);}
+	: IF LEFT_ROUND_BRACKET expression RIGHT_ROUND_BRACKET statement
+	| IF LEFT_ROUND_BRACKET expression RIGHT_ROUND_BRACKET compound-statement
+	| IF LEFT_ROUND_BRACKET RIGHT_ROUND_BRACKET compound-statement
+	| IF LEFT_ROUND_BRACKET expression RIGHT_ROUND_BRACKET statement ELSE statement
+	| SWITCH LEFT_ROUND_BRACKET expression RIGHT_ROUND_BRACKET statement
 	;
 
 iteration-statement
-	: WHILE LEFT_ROUND_BRACKET expression RIGHT_ROUND_BRACKET statement { $$ = createWhileStatement($3, $5, NULL);}
-	| DO statement WHILE LEFT_ROUND_BRACKET expression RIGHT_ROUND_BRACKET { $$ = createDoWhileStatement($2, $5, NULL);}
+	: WHILE LEFT_ROUND_BRACKET expression RIGHT_ROUND_BRACKET statement
+	| DO statement WHILE LEFT_ROUND_BRACKET expression RIGHT_ROUND_BRACKET ;
 	| FOR LEFT_ROUND_BRACKET expression END_OF_INSTRUCTION expression END_OF_INSTRUCTION expression RIGHT_ROUND_BRACKET statement
 	| FOR LEFT_ROUND_BRACKET expression END_OF_INSTRUCTION expression END_OF_INSTRUCTION RIGHT_ROUND_BRACKET statement
 	| FOR LEFT_ROUND_BRACKET expression END_OF_INSTRUCTION END_OF_INSTRUCTION expression RIGHT_ROUND_BRACKET statement
@@ -597,10 +564,10 @@ iteration-statement
 	| FOR LEFT_ROUND_BRACKET END_OF_INSTRUCTION expression END_OF_INSTRUCTION RIGHT_ROUND_BRACKET statement
 	| FOR LEFT_ROUND_BRACKET END_OF_INSTRUCTION END_OF_INSTRUCTION expression RIGHT_ROUND_BRACKET statement
 	| FOR LEFT_ROUND_BRACKET END_OF_INSTRUCTION END_OF_INSTRUCTION RIGHT_ROUND_BRACKET statement
-	| FOR LEFT_ROUND_BRACKET declaration END_OF_INSTRUCTION expression END_OF_INSTRUCTION expression RIGHT_ROUND_BRACKET statement { $$ = createForStatement($3, $5, $7, $9, NULL);}
+	| FOR LEFT_ROUND_BRACKET declaration END_OF_INSTRUCTION expression END_OF_INSTRUCTION expression RIGHT_ROUND_BRACKET statement
 	| FOR LEFT_ROUND_BRACKET declaration END_OF_INSTRUCTION declaration END_OF_INSTRUCTION RIGHT_ROUND_BRACKET statement
 	| FOR LEFT_ROUND_BRACKET declaration END_OF_INSTRUCTION END_OF_INSTRUCTION declaration RIGHT_ROUND_BRACKET statement
-	| FOR LEFT_ROUND_BRACKET declaration END_OF_INSTRUCTION END_OF_INSTRUCTION RIGHT_ROUND_BRACKET statement { $$ = createForStatement($3, NULL, $7, NULL, NULL);}
+	| FOR LEFT_ROUND_BRACKET declaration END_OF_INSTRUCTION END_OF_INSTRUCTION RIGHT_ROUND_BRACKET statement
 	| FOR LEFT_ROUND_BRACKET END_OF_INSTRUCTION declaration END_OF_INSTRUCTION RIGHT_ROUND_BRACKET statement
 	;
 
@@ -609,7 +576,6 @@ jump-statement
 	| CONTINUE END_OF_INSTRUCTION
 	| BREAK END_OF_INSTRUCTION
 	| RETURN expression END_OF_INSTRUCTION
-	| RETURN CONSTANT END_OF_INSTRUCTION
 	| RETURN END_OF_INSTRUCTION
 	;
 
@@ -631,9 +597,8 @@ declaration-list
 function-definition
 	: declaration-specifier declarator declaration-list compound-statement
 	| declaration-specifier declarator compound-statement
-	| type-specifier IDENTIFIER LEFT_ROUND_BRACKET RIGHT_ROUND_BRACKET compound-statement 
-	| type-specifier IDENTIFIER LEFT_ROUND_BRACKET declaration-specifier RIGHT_ROUND_BRACKET compound-statement { $$ = createFunctionDeclarationNode($1, $2, $4, $6);  } 
-	| type-specifier IDENTIFIER LEFT_ROUND_BRACKET declaration-specifier RIGHT_ROUND_BRACKET compound-statement { $$ = createFunctionDeclarationNode($1, $2, $4, $6);  } 
+	| type-specifier IDENTIFIER LEFT_ROUND_BRACKET RIGHT_ROUND_BRACKET compound-statement
+	| type-specifier IDENTIFIER LEFT_ROUND_BRACKET declaration-specifier RIGHT_ROUND_BRACKET compound-statement
 	;
 
 %%

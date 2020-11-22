@@ -1,111 +1,35 @@
 #include <stdio.h>
-#include "symbols.h"
+#include "ast.h"
+//#include "symbols.h"
 //extern int yylex(void);
-//#define YYPARSE_PARAM symbol;
-//int yyparse(void *symbol);
 extern int yyparse(void);
-extern FILE* yyin;
+extern FILE * yyin;
 extern int yydebug;
-char* symbols[] = {
-                            "END",
-                            "INT",
-                            "LONG",
-                            "DOUBLE",
-                            "SHORT",
-                            "UNSIGNED",
-                            "VOID",
-                            "VOLATILE",
-                            "WHILE",
-                            "FLOAT",
-                            "IF",
-                            "ELSE",
-                            "RETURN",
-                            "CONSTANT",
-                            "STRING_LITERAL",
-                            "ASSIGN",
-                            "ADD",
-                            "SUBSTRACT",
-                            "IDENTIFIER",
-                            "END_OF_INSTRUCTION",
-                            "CHAR",
-                            "SIGNED",
-                            "_BOOL",
-                            "_COMPLEX",
-                            "_IMAGINARY",
-                            "CONST",
-                            "ENUM",
-                            "EXTERN",
-                            "REGISTER",
-                            "STATIC",
-                            "STRUCT",
-                            "UNION",
-                            "TYPEDEF",
-                            "FOR",
-                            "SWITCH",
-                            "CASE",
-                            "BREAK",
-                            "DEFAULT",
-                            "INLINE",
-                            "AUTO",
-                            "CONTINUE",
-                            "GOTO",
-                            "RESTRICT",
-                            "SIZEOF",
-                            "SIMPLE_ESCAPE_SEQUENCE",
-                            "INCLUDE_HEADER",
-                            "INCLUDE_LIBRARY",
-                            "DEFINE",
-                            "PREPROCESSING_NUMBER",
-                            "DIVIDE",
-                            "MODULO",
-                            "MULTIPLY",
-                            "LEFT_SQUARE_BRACKET",
-                            "RIGHT_SQUARE_BRACKET",
-                            "LEFT_ROUND_BRACKET",
-                            "RIGHT_ROUND_BRACKET",
-                            "LEFT_CURLY_BRACKET",
-                            "RIGHT_CURLY_BRACKET",
-                            "STRUCTURE_REFERENCE",
-                            "STRUCTURE_DEFERENCE",
-                            "INCREMENT",
-                            "DECREMENT",
-                            "BITWISE_AND",
-                            "BITWISE_NOT",
-                            "LOGICAL_NEGATION",
-                            "BITWISE_LEFT_SHIFT",
-                            "BITWISE_RIGHT_SHIFT",
-                            "LESS_THAN",
-                            "GREATER_THAN",
-                            "LESS_THAN_OR_EQUAL_TO",
-                            "GREATER_THAN_OR_EQUAL_TO",
-                            "EQUAL_TO",
-                            "NOT_EQUAL_TO",
-                            "BITWISE_XOR",
-                            "BITWISE_OR",
-                            "LOGICAL_AND",
-                            "LOGICAL_OR",
-                            "TERNARY_IF_CONDITION",
-                            "TERNARY_ELSE_CONDITION",
-                            "ASSIGNMENT_BY_PRODUCT",
-                            "ASSIGNMENT_BY_QUOTIENT",
-                            "ASSIGNMENT_BY_REMAINDER",
-                            "ASSIGNMENT_BY_SUM",
-                            "ASSIGNMENT_BY_DIFFERENCE",
-                            "ASSIGNMENT_BY_BITWISE_LEFT_SHIFT",
-                            "ASSIGNMENT_BY_BITWISE_RIGHT_SHIFT",
-                            "ASSIGNMENT_BY_BITWISE_AND",
-                            "ASSIGNMENT_BY_BITWISE_XOR",
-                            "ASSIGNMENT_BY_BITWISE_OR",
-                            "START_COMMENT",
-                            "COMMA",
-                            "LINE_COMMENT",
-                            "END_COMMENT",
-                            "DO",
-                            "ARRAY",
-                            "DOTS"
-							
-};
+extern Node* astRoot;
 
+//char* symbols[] = {
+//	"END",
+//							"INT",
+//							"LONG",
+//							"DOUBLE",
+//							"SHORT",
+//							"UNSIGNED",
+//							"VOID",
+//							"VOLATILE",
+//							"WHILE",
+//							"FLOAT",
+//							"IF",
+//							"ELSE",
+//							"RETURN",
+//							"CONSTANT",
+//							"STRING_LITERAL",
+//							"ASSIGN",
+//							"ADD",
+//							"SUBSTRACT",
+//							"IDENTIFIER",
+//							"END_OF_INSTRUCTION"
+//
+//};
 int main()
 {
 	//int lexUnit = 0;
@@ -131,15 +55,83 @@ int main()
 		default:
 			break;
 		}
-		/*while ((lexUnit = yylex()) != END)
-		{
-			printf(" -> TOKEN: %s\n", symbols[lexUnit]);
-		}*/
+		printAst(astRoot, 0);
 		fclose(yyin);
 	}
 	else
 	{
 		printf("Fisier inexistent");
+	}
+	functions_called();
+	//printf("The function if was called %d times \n", counter_if_call);
+	printf("Do you want to check a function definition ? Type YES if you want, or NO if you don't want : ");
+	char answer[4];
+	scanf("%s", &answer);
+
+	if (strcmp(answer, "YES") == 0) {
+		printf("Please type the function name : ");
+		char function_name[40];
+		scanf("%s", &function_name);
+		
+		if (strcmp(function_name, "createTypeSpecifier") == 0)
+			printf("Node * createTypeSpecifier(const char* typeName);");
+
+		if (strcmp(function_name, "createProgramUnitNode") == 0)
+			printf("Node* createProgramUnitNode(Node* declaration);");
+
+		if (strcmp(function_name, "createDeclarationNode") == 0)
+			printf("Node* createDeclarationNode(Node* varFunDeclaration);");
+
+		if (strcmp(function_name, "createFunctionDeclarationNode") == 0)
+			printf("Node* createFunctionDeclarationNode(Node* typeSpecifier, const char* functionName, Node* paramsList, Node* compoundStatement);");
+	
+		if (strcmp(function_name, "createVarDeclaration") == 0)
+			printf("Node* createVarDeclaration(Node* typeSpecifier, const char* varName, int value);");
+
+		if (strcmp(function_name, "createCompoundStatement") == 0)
+			printf("Node* createCompoundStatement(Node* localDeclList, Node* instructionsList);");
+
+		if (strcmp(function_name, "createIfStatement") == 0) {
+			printf("Node* createIfStatement(const char* identifierName, Node* thenStatement, Node* elseStatement);\n");
+			if_calls();
+		}
+
+		if (strcmp(function_name, "createSwitchStatement") == 0) {
+			printf("Node* createSwitchStatement(const char* identName, Node* condStatement, Node* cond2Statement);\n");
+			switch_calls();
+		}
+
+		if (strcmp(function_name, "createWhileStatement") == 0) {
+			printf("Node* createWhileStatement(const char* identName, Node* condStatement, Node* cond2Statement);\n");
+			while_calls();
+		}
+
+		if (strcmp(function_name, "createDoWhileStatement") == 0) {
+			printf("Node* createDoWhileStatement(const char* identName, Node* condStatement, Node* cond2Statement);\n");
+			do_while_calls();
+		}
+		if (strcmp(function_name, "createForStatement") == 0) {
+			printf("Node* createForStatement(const char* identName, Node* condStatement, Node* cond2Statement, Node* cond3Statement, Node* cond4Statement);\n");
+			for_calls();
+		}
+
+		if (strcmp(function_name, "createExpressionStatement") == 0)
+			printf("Node * createExpressionStatement(Node * localIdent, Node * localValue);");
+
+		if (strcmp(function_name, "createDefaultNode") == 0)
+			printf("Node* createDefaultNode(const char* nodeName, unsigned int linksCount);");
+
+		if (strcmp(function_name, "resizeNodeLinks") == 0)
+			printf("Node* resizeNodeLinks(Node* nodeToResize, unsigned int newSize);");
+
+		if (strcmp(function_name, "createListNode") == 0)
+			printf("Node* createListNode(const char* listName, Node* firstLink);");
+
+		if (strcmp(function_name, "addLinkToList") == 0)
+			printf("void addLinkToList(Node* listNode, Node* linkToAdd);");
+
+		if (strcmp(function_name, "printAst") == 0)
+			printf("void printAst(Node* ast, int level);");
 	}
 
 	//getchar();
