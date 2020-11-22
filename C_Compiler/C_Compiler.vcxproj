@@ -145,6 +145,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ast.c" />
     <ClCompile Include="c.tab.c" />
     <ClCompile Include="C_Compiler.c" />
     <ClCompile Include="lex.yy.c" />
@@ -155,6 +156,7 @@
     <None Include="input.csrc" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ast.h" />
     <ClInclude Include="c.tab.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

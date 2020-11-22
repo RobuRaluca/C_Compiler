@@ -17,7 +17,9 @@ NULL		[\0]
 
 %{
 #include <stdio.h>
+#include "ast.h"
 #include "c.tab.h"
+
 
 void count();
 %}
@@ -25,7 +27,7 @@ void count();
 %%
 "/*"			{ comment();}
 
-	
+"//"			{ count(); return(LINE_COMMENT); }	
 "int"			{ count(); return(INT); }
 "char"			{ count(); return(CHAR); }
 "double"		{ count(); return(DOUBLE); }
@@ -66,20 +68,23 @@ void count();
 "restrict"	{ count(); return(RESTRICT); }
 "sizeof"	{ count(); return(SIZEOF); }
 
-{L}({L}|{D})*		{ count(); return(check_type()); }
-0{D}+{IS}?		{ count(); return(CONSTANT); }
-{D}+{IS}?		{ count(); return(CONSTANT); }
+{L}({L}|{D})*		{ count(); yylval.strings = _strdup(yytext); return(check_type()); }
+0{D}+{IS}?		{ count(); yylval.intVal = atoi(yytext); return(CONSTANT); }
+{D}+{IS}?		{ count(); yylval.intVal = atoi(yytext); return(CONSTANT); }
 {D}+{E}{FS}?		{ count(); return(CONSTANT); }
 {D}*"."{D}+({E})?{FS}?	{ count(); return(CONSTANT); }
 {D}+"."{D}*({E})?{FS}?	{ count(); return(CONSTANT); }
 
 
 
+"#include<"{L}+.{L}">"				{ count(); return(INCLUDE_LIBRARY); }
 "#include<"{L}+">"				{ count(); return(INCLUDE_LIBRARY); }
-"#include\""{L}+"\""			{ count(); return(INCLUDE_HEADER); }
+"#include <"{L}+.{L}">"				{ count(); return(INCLUDE_LIBRARY); }
+"#include <"{L}+">"				{ count(); return(INCLUDE_LIBRARY); }
+"#include\""{L}+.{L}"\""			{ count(); return(INCLUDE_HEADER); }
+"#include \""{L}+.{L}"\""			{ count(); return(INCLUDE_HEADER); }
 "#define "{L}+" "{D}+			{ count(); return(DEFINE); }
 ("char "{L}+"["{D}+"]"|"int "{L}+"["{D}+"]"|"long "{L}+"["{D}+"]"|"float "{L}+"["{D}+"]")			{ count(); return(ARRAY); }
-
 
 "\\n"|"\\t"|"\\a"|"\\b"|"\\f"|"\\v"	{ count(); return(SIMPLE_ESCAPE_SEQUENCE); }
 
@@ -131,6 +136,8 @@ void count();
 "|="		{ count(); return (ASSIGNMENT_BY_BITWISE_OR);}
 ","			{ count(); return (COMMA);}
 "..."		{ count(); return (DOTS);}
+"/*"		{ count(); return (START_COMMENT);}
+"*/"		{ count(); return (END_COMMENT);}
 
 
 
