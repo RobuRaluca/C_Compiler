@@ -1,11 +1,130 @@
 #include <stdio.h>
 #include "ast.h"
+#include "c.tab.h"
 //#include "symbols.h"
 //extern int yylex(void);
 extern int yyparse(void);
 extern FILE * yyin;
 extern int yydebug;
 extern Node* astRoot;
+
+#define MAX_SYMBOL_NAME 255
+#define MAX_DATATYPE_NAME 255
+#define MAX_CONTEXT_NAME 255
+#define SIZE 200
+
+typedef enum IdentifierScope { Local = 0, Global = 1 } IdentifierScope;
+
+typedef enum SymbolType { Function = 0, Variable = 1 } SymbolType;
+
+typedef struct symTableEntry {
+	char symbolName[MAX_SYMBOL_NAME];
+	char dataType[MAX_DATATYPE_NAME];
+	SymbolType symbolType;
+	IdentifierScope symbolScope;
+	char contextName[MAX_CONTEXT_NAME];
+	struct symTableEntry* next;
+}symbolsTableEntry;
+
+static symbolsTableEntry** hashTable;
+
+void initHashTable();
+void insertSymbol(char* name, char* data, SymbolType type, IdentifierScope scope, char* context);
+void printSymTable();
+void generateSymTable(Node* astRoot, int level, Node* parent);
+
+
+int currentElement = 0, i = 0, index = 0;
+
+void initHashTable() {
+	hashTable = (symbolsTableEntry*)malloc(sizeof(symbolsTableEntry));
+	for (i = 0; i < SIZE; i++)
+		hashTable[i] = NULL;
+}
+
+void insertSymbol(char* name, char* data, SymbolType type, IdentifierScope scope, char* context) {
+	int hashValue = currentElement;
+	symbolsTableEntry* list = hashTable[hashValue];
+
+	list = (symbolsTableEntry*)malloc(sizeof(symbolsTableEntry));
+	list->symbolScope = scope;
+	list->symbolType = type;
+	strcpy(list->dataType, data);
+	strcpy(list->symbolName, name);
+	strcpy(list->contextName, context);
+
+	hashTable[hashValue] = list;
+	currentElement++;
+
+}
+
+void printSymTable() {
+	printf_s("             ## SYMBOLS TABLE ##\n ");
+
+	if (hashTable[i]) {
+
+		symbolsTableEntry* list = hashTable[i];
+
+		while (list) {
+			printf_s("Symbol name : %s", list->symbolName);
+			printf_s("	Symbol data type :");
+
+			switch (list->symbolType) {
+			case(Function): printf_s("Function");
+			case(Variable):printf_s("Variable");
+			}
+
+			printf_s("	Symbol scope :");
+			switch (list->symbolScope) {
+			case(Local): printf_s("Local");
+			case(Global):printf_s("Global");
+			}
+
+			printf_s("	Symbol context : %s\n", list->contextName);
+			list = list->next;
+
+		}
+	}
+}
+
+void generateSymTable(Node* astRoot, int level, Node* parent) {
+	char* type = NULL;
+	enum IdentifierScope scope = Local;
+	enum SymbolType symType = Variable;
+	Node* localParent = parent;
+
+	if (astRoot) {
+		if (strcmp(astRoot->type, "FunctionDefinition") == 0) {
+			for (index = 0; index < astRoot->numLinks; index++) {
+				if (strcmp(astRoot->links[index]->type, "TypeSpecifier") == 0) {
+					type = astRoot->links[index]->extraData;
+					break;
+				}
+			}
+
+			insertSymbol(astRoot->extraData, type, Function, Global, localParent->type);
+		}
+
+		if (strcmp(astRoot->type, "VariableDeclaration") == 0) {
+			symType = Variable;
+			scope = Local;
+			for (index = 0; index < astRoot->numLinks; index++) {
+				if (strcmp(astRoot->links[index]->type, "TypeSpecifier") == 0) {
+					type = astRoot->links[index]->extraData;
+					break;
+				}
+			}
+
+			insertSymbol(astRoot->extraData, type, symType, scope, localParent->type);
+
+		}
+
+		for (index = 0; index < astRoot->numLinks; index++) {
+			localParent = astRoot;
+			generateSymTable(astRoot->links[index], level + 1, localParent);
+		}
+	}
+}
 
 //char* symbols[] = {
 //	"END",
@@ -56,15 +175,20 @@ int main()
 			break;
 		}
 		printAst(astRoot, 0);
+
+		initHashTable();
+		//generateSymTable(astRoot, 0, astRoot);
+		//printSymTable();
+
 		fclose(yyin);
 	}
 	else
 	{
 		printf("Fisier inexistent");
 	}
-	functions_called();
+	//functions_called();
 	//printf("The function if was called %d times \n", counter_if_call);
-	printf("Do you want to check a function definition ? Type YES if you want, or NO if you don't want : ");
+	/*printf("Do you want to check a function definition ? Type YES if you want, or NO if you don't want : ");
 	char answer[4];
 	scanf("%s", &answer);
 
@@ -132,7 +256,7 @@ int main()
 
 		if (strcmp(function_name, "printAst") == 0)
 			printf("void printAst(Node* ast, int level);");
-	}
+	}*/
 
 	//getchar();
 }

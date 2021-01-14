@@ -132,13 +132,13 @@ Node* createIfStatement(const char* identifierName, Node* thenStatement, Node* e
 	return retNode;
 }
 
-Node* createSwitchStatement(const char* identName, Node* condStatement, Node* cond2Statement) {
+Node* createSwitchStatement(Node* expression, Node* switchStatement) { // delete identName
 	Node* retNode = createDefaultNode("SwitchStatement", 2);
-	retNode->links[0] = condStatement;
-	retNode->links[1] = cond2Statement;
+	retNode->links[0] = expression;
+	retNode->links[1] = switchStatement;
 	counter_switch_call++;
-	if (identName)
-		sprintf(retNode->extraData, "%s", identName);
+	//if (identName)
+	//	sprintf(retNode->extraData, "%s", identName);
 	return retNode;
 }
 

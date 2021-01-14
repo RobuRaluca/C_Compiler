@@ -25,7 +25,7 @@ Node* createVarDeclaration(Node* typeSpecifier, const char* varName, int value);
 Node* createCompoundStatement(Node* localDeclList, Node* instructionsList);
 Node* createIfStatement(const char* identifierName, Node* thenStatement, Node* elseStatement);
 
-Node* createSwitchStatement(const char* identName, Node* condStatement, Node* cond2Statement);
+Node* createSwitchStatement(Node* expression, Node* switchStatement);
 Node* createWhileStatement(const char* identName, Node* condStatement, Node* cond2Statement);
 Node* createDoWhileStatement(const char* identName, Node* condStatement, Node* cond2Statement);
 Node* createForStatement(const char* identName, Node* condStatement, Node* cond2Statement, Node* cond3Statement, Node* cond4Statement);
