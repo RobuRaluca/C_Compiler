@@ -1,10 +1,27 @@
 %{
 #include <stdio.h>
 #include "ast.h"
+#include "SemanticAnalizer.h"
+
+struct symTableEntry sym_table_entry[100];
+int contor = 0;
+int scope_index;
 
 Node* astRoot = NULL;
 int yyerror(char * s);
 extern int yylex(void);
+
+typedef struct AST{ // Abstract Sintax Tree AST
+	char lexeme[100]; //a basic lexical unit of a language consisting of one word or several words, the elements of which do not separately convey the meaning of the whole.
+	int numberChild; 
+	struct AST **child;
+}AST_node;
+
+struct AST* make_for_node(char* root, AST_node* child1, AST_node* child2, AST_node* child3, AST_node* child4);
+struct AST * make_node(char*, AST_node*, AST_node*);
+struct AST* make_leaf(char* root);
+void AST_print(struct AST *t);
+
 %}
 %union{
 	
@@ -580,11 +597,8 @@ expression-statement
 
 selection-statement
 	: IF LEFT_ROUND_BRACKET expression RIGHT_ROUND_BRACKET statement { $$ = createIfStatement($3, $5, NULL);}
-	| IF LEFT_ROUND_BRACKET expression RIGHT_ROUND_BRACKET compound-statement { $$ = createIfStatement($3, $5, NULL);}
-	| IF LEFT_ROUND_BRACKET RIGHT_ROUND_BRACKET compound-statement { $$ = createIfStatement("", $4, NULL);}
 	| IF LEFT_ROUND_BRACKET expression RIGHT_ROUND_BRACKET statement ELSE statement { $$ = createIfStatement($3, $5, $7);}
-	| SWITCH LEFT_ROUND_BRACKET expression RIGHT_ROUND_BRACKET statement { $$ = createSwitchStatement($3, $5, NULL);}
-	| SWITCH LEFT_ROUND_BRACKET RIGHT_ROUND_BRACKET statement { $$ = createSwitchStatement("", $4, NULL);}
+	| SWITCH LEFT_ROUND_BRACKET expression RIGHT_ROUND_BRACKET statement { $$ = createSwitchStatement($3, $5);}
 	;
 
 iteration-statement
@@ -644,3 +658,88 @@ int yyerror(char * s)
 	printf ( "%s\n", s); 
 	return 0;
 }  
+
+//sym_table_entry
+
+void update_sym_table(char* type, char* name, int line, int scope){ //updateaza tabelul de simboluri cu intrarile citite
+	strcpy(sym_table_entry[contor].symbolName,name);
+
+	if(strcmp(type,"int")==0){
+		strcpy(sym_table_entry[contor].dataType,type);
+		sym_table_entry[contor].symbolType=4; //cati biti are tipul de date
+	}
+	else if(strcmp(type,"float")==0){
+		strcpy(sym_table_entry[contor].type,typ);
+		sym_table_entry[contor].symbolType=8;
+	}
+	else if(strcmp(typ,"char")==0){
+		strcpy(sym_table_entry[contor].type,typ);
+		sym_table_entry[contor].symbolType=1;	
+	}
+	sym_table_entry[contor].contextName=line;
+	sym_table_entry[contor].symbolScope=scope;
+	contor++;
+}
+
+void print_sym_table(){ //afiseaza tabelul de simboluri
+	int i;
+	printf("\n\nSymbol Table: \n");
+	for(i=0;i<contor;i++){
+		printf("<%s, %s, %d, %d, %s> \n",sym_table_entry[i].symbolName, sym_table_entry[i].dataType, sym_table_entry[i].symbolType,sym_table_entry[i].symbolScope,sym_table_entry[i].contextName);
+	}
+}
+
+int look_up_sym_table(char* name){ //verifica variabile nedeclarate
+	int i; 
+	for(i=0;i<contor;i++){
+		if(strcmp(sym_table_entry[i].symbolName,name)==0){
+			int scop=sym_table_entry[i].IdentifierScope;
+			int flag=0;
+			int zero_contor=0;
+			int j=scope_ind-1;
+			while(j>=0){
+				if(scope[j]==0)
+					zero_contor++;
+				else if(scope[j]!=0 && zero_contor>0)
+					zero_contor--;
+				else if(scope[j]!=0 && zero_contor==0)	{
+					if(scope[j]==scope){
+						flag=1;
+						return 1;
+					}
+				}
+				j--;
+			}
+		}
+	}
+	return 0;
+}
+
+int look_up_sym_table_dec(char* name, int scope){ //verifica pentru redeclarari
+	int i; 
+	for(i=0;i<contor;i++){
+		if(strcmp(sym_table_entry[i].symbolName,name)==0 && sym_table_entry[i].scope==scop){
+			return 1;
+		}
+	}
+	return 0;
+}
+
+int get_scope(){ //A scope in any programming is a region of the program where a defined variable can have its existence and beyond that variable it cannot be accessed.
+	int i=scope_index-1;
+	int zero_contor=0;
+	int flag=1;
+	while(flag && i>0){
+		if(scope[i]!=0)
+			zero_contor--;
+		else
+			zero_contor++;
+		if(zero_contor==0){
+			i--;
+			flag=0;
+			break;
+		}
+		i--;
+	}
+	return scope[i];
+}
